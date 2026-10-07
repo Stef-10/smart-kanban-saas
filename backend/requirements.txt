@@ -11,7 +11,7 @@ blinker==1.9.0
 # Base de Datos y ORM
 SQLAlchemy==2.1.0
 Flask-SQLAlchemy==3.1.1
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.11
 
 # Autenticación y Tokens JWT
 Flask-JWT-Extended==4.7.4
