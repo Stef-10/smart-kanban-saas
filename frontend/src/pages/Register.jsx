@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 
-export default function Login() {
+export default function Register() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -12,20 +13,28 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate('/boards');
+      await api.post('/auth/register', { name, email, password });
+      navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo iniciar sesión');
+      setError(err.response?.data?.message || 'No se pudo registrar');
     }
   };
 
   return (
     <div className="container mt-5" style={{ maxWidth: 420 }}>
-      <h2 className="mb-4">Iniciar sesión</h2>
+      <h2 className="mb-4">Crear cuenta</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="form-label">Nombre</label>
+          <input
+            type="text"
+            className="form-control"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
         <div className="mb-3">
           <label className="form-label">Correo electrónico</label>
           <input
@@ -43,13 +52,14 @@ export default function Login() {
             className="form-control"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary w-100">Entrar</button>
+        <button type="submit" className="btn btn-success w-100">Registrarme</button>
       </form>
       <p className="mt-3 text-center">
-        ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
       </p>
     </div>
   );
