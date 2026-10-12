@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Boards from './pages/Boards';
 
 export default function App() {
@@ -8,6 +9,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/boards" element={<Boards />} />
         </Route>
