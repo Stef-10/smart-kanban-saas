@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from models import db, User
+from models import db, User, Board
 from security import init_security
 
 load_dotenv()
@@ -75,6 +75,69 @@ def login():
 @jwt_required()
 def me():
     return jsonify(user_id=get_jwt_identity()), 200
+def get_owned_board(board_id):
+    return Board.query.filter_by(id=board_id, owner_id=int(get_jwt_identity())).first()
+
+
+@app.route('/api/boards', methods=['GET'])
+@jwt_required()
+def list_boards():
+    user_id = int(get_jwt_identity())
+    boards = Board.query.filter_by(owner_id=user_id).order_by(Board.created_at.desc()).all()
+    return jsonify([b.to_dict() for b in boards]), 200
+
+
+@app.route('/api/boards', methods=['POST'])
+@jwt_required()
+def create_board():
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+
+    if not name:
+        return jsonify({"message": "El nombre del tablero es obligatorio"}), 400
+
+    board = Board(
+        name=name,
+        description=(data.get('description') or '').strip(),
+        owner_id=int(get_jwt_identity()),
+    )
+    db.session.add(board)
+    db.session.commit()
+
+    return jsonify(board.to_dict()), 201
+
+@app.route('/api/boards/<int:board_id>', methods=['PUT'])
+@jwt_required()
+def update_board(board_id):
+    board = get_owned_board(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+
+    data = request.get_json(silent=True) or {}
+
+    if 'name' in data:
+        name = (data.get('name') or '').strip()
+        if not name:
+            return jsonify({"message": "El nombre del tablero es obligatorio"}), 400
+        board.name = name
+
+    if 'description' in data:
+        board.description = (data.get('description') or '').strip()
+
+    db.session.commit()
+    return jsonify(board.to_dict()), 200
+
+
+@app.route('/api/boards/<int:board_id>', methods=['DELETE'])
+@jwt_required()
+def delete_board(board_id):
+    board = get_owned_board(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+
+    db.session.delete(board)
+    db.session.commit()
+    return jsonify({"message": "Tablero eliminado"}), 200
 
 
 if __name__ == '__main__':
