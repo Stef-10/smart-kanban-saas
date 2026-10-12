@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kanban.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY') or 'admin-user-ks'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
 
 CORS(app)
@@ -138,6 +138,37 @@ def delete_board(board_id):
     db.session.delete(board)
     db.session.commit()
     return jsonify({"message": "Tablero eliminado"}), 200
+
+@app.route('/api/boards/<int:board_id>/members', methods=['POST'])
+@jwt_required()
+def add_board_member(board_id):
+    board = get_owned_board(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado o no tienes permisos"}), 404
+
+    data = request.get_json(silent=True) or {}
+    email_to_invite = (data.get('email') or '').strip()
+
+    if not email_to_invite:
+        return jsonify({"message": "El correo electrónico es obligatorio"}), 400
+    
+    user_to_invite = User.query.filter_by(email=email_to_invite).first()
+    if not user_to_invite:
+        return jsonify({"message": "El usuario con este correo no está registrado en la plataforma"}), 404
+
+    if user_to_invite.id == board.owner_id:
+        return jsonify({"message": "Eres el dueño de este tablero, ya formas parte de él"}), 400
+
+    if user_to_invite in board.members:
+        return jsonify({"message": "Este usuario ya es colaborador de este tablero"}), 400
+
+    board.members.append(user_to_invite)
+    db.session.commit() 
+
+    return jsonify({
+        "status": "success",
+        "message": f"¡{user_to_invite.name} ha sido añadido como colaborador exitosamente!"
+    }), 200 
 
 
 if __name__ == '__main__':
