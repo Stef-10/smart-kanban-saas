@@ -176,9 +176,16 @@ export default function Boards() {
                       >
                         Eliminar
                       </button>
+                      <button
+                        className="btn btn-primary btn-sm me-2"
+                        onClick={() => navigate(`/boards/${board.id}`)}
+                      >
+                        Ver Tablero
+                      </button>
                       <div className="mt-3 pt-2 border-top">
                         <InviteMember boardId={board.id} />
                       </div>
+
                     </>
                   )}
                 </div>
