@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { InviteMember } from '../components/InviteMember';
+
 
 export default function Boards() {
   const navigate = useNavigate();
@@ -174,6 +176,9 @@ export default function Boards() {
                       >
                         Eliminar
                       </button>
+                      <div className="mt-3 pt-2 border-top">
+                        <InviteMember boardId={board.id} />
+                      </div>
                     </>
                   )}
                 </div>
