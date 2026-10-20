@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from models import db, User, Board
+from models import db, User, Board, Task
 from security import init_security
 
 load_dotenv()
@@ -139,14 +139,11 @@ def delete_board(board_id):
     db.session.commit()
     return jsonify({"message": "Tablero eliminado"}), 200
 
-# =========================================================================
-# ÉPICA B.2: GESTIÓN DE MIEMBROS - INVITAR COLABORADOR POR EMAIL
-# =========================================================================
+
 @app.route('/api/boards/<int:board_id>/members', methods=['POST'])
 @jwt_required()
 def add_board_member(board_id):
     try:
-        # 1. Verificar que el usuario que invita sea el DUEÑO del tablero
         board = get_owned_board(board_id)
         if not board:
             return jsonify({"message": "Tablero no encontrado o no tienes permisos"}), 404
@@ -154,28 +151,22 @@ def add_board_member(board_id):
         data = request.get_json(silent=True) or {}
         email_to_invite = (data.get('email') or '').strip()
 
-        # 2. Validar que se reciba el correo
         if not email_to_invite:
             return jsonify({"message": "El correo electrónico es obligatorio"}), 400
 
-        # 3. Buscar si el usuario a invitar existe en la plataforma
         user_to_invite = User.query.filter_by(email=email_to_invite).first()
         if not user_to_invite:
             return jsonify({"message": "El usuario con este correo no está registrado en la plataforma"}), 404
 
-        # 4. Validar que el dueño no se invite a sí mismo
         if user_to_invite.id == board.owner_id:
             return jsonify({"message": "Eres el dueño de este tablero, ya formas parte de él"}), 400
 
-        # 5. Inicializar la lista de miembros si SQLAlchemy la lee vacía por primera vez
         if not hasattr(board, 'members') or board.members is None:
             board.members = []
 
-        # 6. Validar que el usuario no haya sido invitado previamente
         if user_to_invite in board.members:
             return jsonify({"message": "Este usuario ya es colaborador de este tablero"}), 400
 
-        # 7. Guardar la asociación en la tabla intermedia
         board.members.append(user_to_invite)
         db.session.commit()
 
@@ -185,10 +176,55 @@ def add_board_member(board_id):
         }), 200
 
     except Exception as e:
-        # Si algo falla en Python, esto evitará el error 500 y te dirá exactamente qué pasó en JSON
         db.session.rollback()
         return jsonify({"message": "Error interno del servidor", "error": str(e)}), 500
 
+@app.route('/api/boards/<int:board_id>/tasks', methods=['GET'])
+@jwt_required()
+def list_board_tasks(board_id):
+    user_id = int(get_jwt_identity())
+    
+    board = Board.query.get(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+        
+    if board.owner_id != user_id and user_id not in [member.id for member in board.members]:
+        return jsonify({"message": "No tienes permisos para ver este tablero"}), 403
+        
+    tasks = Task.query.filter_by(board_id=board_id).all()
+    return jsonify([t.to_dict() for t in tasks]), 200
+
+
+@app.route('/api/boards/<int:board_id>/tasks', methods=['POST'])
+@jwt_required()
+def create_task(board_id):
+    user_id = int(get_jwt_identity())
+    
+    board = Board.query.get(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+
+    if board.owner_id != user_id and user_id not in [member.id for member in board.members]:
+        return jsonify({"message": "No tienes permisos para editar este tablero"}), 403
+
+    data = request.get_json(silent=True) or {}
+    title = (data.get('title') or '').strip()
+
+    if not title:
+        return jsonify({"message": "El título de la tarea es obligatorio"}), 400
+
+    new_task = Task(
+        title=title,
+        description=(data.get('description') or '').strip(),
+        status=(data.get('status') or 'todo').strip(),
+        priority=(data.get('priority') or 'medium').strip(),
+        board_id=board_id
+    )
+    
+    db.session.add(new_task)
+    db.session.commit()
+
+    return jsonify(new_task.to_dict()), 201
 
 
 if __name__ == '__main__':

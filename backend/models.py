@@ -44,16 +44,19 @@ class Board(db.Model):
 
 class Task(db.Model):
     __tablename__ = 'tasks'
-
+    
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
-
     status = db.Column(db.String(50), default='todo', nullable=False)
     priority = db.Column(db.String(30), default='medium', nullable=False)
+    
+    due_date = db.Column(db.DateTime, nullable=True)
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     board_id = db.Column(db.Integer, db.ForeignKey('boards.id', ondelete="CASCADE"), nullable=False)
+    
     board = db.relationship('Board', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
 
     def to_dict(self):
@@ -63,6 +66,8 @@ class Task(db.Model):
             "description": self.description,
             "status": self.status,
             "priority": self.priority,
+            "due_date": self.due_date.isoformat() if self.due_date else None,
+            "assigned_to_id": self.assigned_to_id,
             "board_id": self.board_id,
             "created_at": self.created_at.isoformat()
         }
