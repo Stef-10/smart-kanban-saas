@@ -226,6 +226,48 @@ def create_task(board_id):
 
     return jsonify(new_task.to_dict()), 201
 
+@app.route('/api/boards/<int:board_id>/tasks/<int:task_id>', methods=['PUT'])
+@jwt_required()
+def update_task(board_id, task_id):
+    user_id = int(get_jwt_identity())
+    
+    board = Board.query.get(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+
+    if board.owner_id != user_id and user_id not in [member.id for member in board.members]:
+        return jsonify({"message": "No tienes permisos para editar este tablero"}), 403
+
+    task = Task.query.filter_by(id=task_id, board_id=board_id).first()
+    if not task:
+        return jsonify({"message": "Tarea no encontrada"}), 404
+
+    data = request.get_json(silent=True) or {}
+    
+    if 'title' in data:
+        title = (data.get('title') or '').strip()
+        if not title:
+            return jsonify({"message": "El título de la tarea no puede estar vacío"}), 400
+        task.title = title
+
+    if 'description' in data:
+        task.description = (data.get('description') or '').strip()
+
+    if 'status' in data:
+        status = (data.get('status') or '').strip()
+        if status not in ['todo', 'in_progress', 'done']:
+            return jsonify({"message": "Estado no válido"}), 400
+        task.status = status
+
+    if 'priority' in data:
+        priority = (data.get('priority') or '').strip()
+        if priority not in ['low', 'medium', 'high']:
+            return jsonify({"message": "Prioridad no válida"}), 400
+        task.priority = priority
+
+    db.session.commit()
+    return jsonify(task.to_dict()), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

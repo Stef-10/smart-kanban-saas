@@ -14,6 +14,7 @@ export default function BoardDetail() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('medium');
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
 
   const columns = [
     { id: 'todo', title: 'Por hacer', bg: 'bg-light' },
@@ -54,10 +55,42 @@ export default function BoardDetail() {
     }
   };
 
+  const handleUpdateStatus = async (taskId, newStatus) => {
+    try {
+      const res = await api.put(`/boards/${boardId}/tasks/${taskId}`, {
+        status: newStatus
+      });
+
+      setTasks(tasks.map(t => t.id === taskId ? res.data : t));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error al actualizar el estado de la tarea');
+    }
+  };
+
   const getPriorityBadge = (prio) => {
     if (prio === 'high') return 'bg-danger';
     if (prio === 'medium') return 'bg-primary';
     return 'bg-secondary';
+  };
+
+  const handleDragStart = (e, taskId) => {
+    setDraggedTaskId(taskId);
+    e.dataTransfer.setData('text/plain', taskId);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e, newStatus) => {
+    e.preventDefault();
+    if (!draggedTaskId) return;
+
+    const task = tasks.find(t => t.id === draggedTaskId);
+    if (task && task.status !== newStatus) {
+      await handleUpdateStatus(draggedTaskId, newStatus);
+    }
+    setDraggedTaskId(null);
   };
 
   return (
@@ -81,7 +114,11 @@ export default function BoardDetail() {
           
           return (
             <div className="col-md-4" key={col.id}>
-              <div className={`card ${col.bg} border-secondary-subtle shadow-sm h-100`} style={{ minHeight: '70vh' }}>
+              <div className={`card ${col.bg} border-secondary-subtle shadow-sm h-100`} 
+              style={{ minHeight: '70vh' }}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, col.id)}
+              >
                 <div className="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
                   {col.title}
                   <span className="badge bg-secondary">{colTasks.length}</span>
@@ -94,7 +131,12 @@ export default function BoardDetail() {
                     <div className="text-center text-muted my-auto small">No hay tareas</div>
                   ) : (
                     colTasks.map((task) => (
-                      <div className="card shadow-sm border-start border-4 border-dark" key={task.id}>
+                      <div className="card shadow-sm border-start border-4 border-dark cursor-pointer" 
+                      key={task.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, task.id)}
+                      style={{ cursor: 'grab' }}
+                      >
                         <div className="card-body p-3">
                           <div className="d-flex justify-content-between align-items-start mb-2">
                             <h6 className="card-title mb-0 fw-bold">{task.title}</h6>
