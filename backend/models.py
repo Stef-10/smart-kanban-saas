@@ -71,3 +71,25 @@ class Task(db.Model):
             "board_id": self.board_id,
             "created_at": self.created_at.isoformat()
         }
+
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete="CASCADE"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    task = db.relationship('Task', backref=db.backref('comments', lazy=True, cascade="all, delete-orphan"))
+    author = db.relationship('User')
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task_id,
+            "content": self.content,
+            "created_at": self.created_at.isoformat() + "Z",
+            "author": {"id": self.author.id, "name": self.author.name},
+        }

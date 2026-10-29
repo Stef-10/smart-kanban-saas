@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import TaskComments from '../components/TaskComments';
 
 export default function BoardDetail() {
   const { boardId } = useParams();
@@ -15,6 +16,7 @@ export default function BoardDetail() {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('medium');
   const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   const columns = [
     { id: 'todo', title: 'Por hacer', bg: 'bg-light' },
@@ -92,8 +94,9 @@ export default function BoardDetail() {
     }
     setDraggedTaskId(null);
   };
-
+  const selectedTask = tasks.find(t => t.id === selectedTaskId);
   return (
+    
     <div className="container-fluid mt-4 px-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -135,6 +138,7 @@ export default function BoardDetail() {
                       key={task.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, task.id)}
+                      onClick={() => setSelectedTaskId(task.id)}
                       style={{ cursor: 'grab' }}
                       >
                         <div className="card-body p-3">
@@ -206,6 +210,34 @@ export default function BoardDetail() {
           </div>
         </div>
       )}
+            {selectedTask && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', zIndex: 1050, overflowY: 'auto' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title fw-bold">{selectedTask.title}</h5>
+                <button type="button" className="btn-close" onClick={() => setSelectedTaskId(null)}></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <span className={`badge ${getPriorityBadge(selectedTask.priority)} me-2`}>
+                    {selectedTask.priority}
+                  </span>
+                  <span className="badge bg-dark">
+                    {columns.find(c => c.id === selectedTask.status)?.title}
+                  </span>
+                </div>
+                <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
+                  {selectedTask.description || 'Sin descripción'}
+                </p>
+                <hr />
+                <TaskComments boardId={boardId} taskId={selectedTask.id} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    
   );
 }
