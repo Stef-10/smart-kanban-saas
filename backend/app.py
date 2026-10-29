@@ -6,8 +6,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import or_
 
-from models import db, User, Board, Task
+from models import db, User, Board, Task, Comment
 from security import init_security
 
 load_dotenv()
@@ -83,7 +84,9 @@ def get_owned_board(board_id):
 @jwt_required()
 def list_boards():
     user_id = int(get_jwt_identity())
-    boards = Board.query.filter_by(owner_id=user_id).order_by(Board.created_at.desc()).all()
+    boards = (Board.query
+          .filter(or_(Board.owner_id == user_id, Board.members.any(User.id == user_id)))
+          .order_by(Board.created_at.desc()).all())
     return jsonify([b.to_dict() for b in boards]), 200
 
 
@@ -268,6 +271,61 @@ def update_task(board_id, task_id):
     db.session.commit()
     return jsonify(task.to_dict()), 200
 
+
+MAX_COMMENT_LENGTH = 1000
+
+
+def get_task_for_member(board_id, task_id):
+    """Valida tablero, permisos (dueño o miembro) y tarea.
+    Devuelve (task, None) si todo va bien, o (None, respuesta_de_error)."""
+    user_id = int(get_jwt_identity())
+
+    board = db.session.get(Board, board_id)
+    if not board:
+        return None, (jsonify({"message": "Tablero no encontrado"}), 404)
+
+    if board.owner_id != user_id and user_id not in [m.id for m in board.members]:
+        return None, (jsonify({"message": "No tienes permisos para este tablero"}), 403)
+
+    task = Task.query.filter_by(id=task_id, board_id=board_id).first()
+    if not task:
+        return None, (jsonify({"message": "Tarea no encontrada"}), 404)
+
+    return task, None
+
+
+@app.route('/api/boards/<int:board_id>/tasks/<int:task_id>/comments', methods=['GET'])
+@jwt_required()
+def list_comments(board_id, task_id):
+    task, error = get_task_for_member(board_id, task_id)
+    if error:
+        return error
+
+    comments = (Comment.query.filter_by(task_id=task.id)
+                .order_by(Comment.created_at.asc(), Comment.id.asc()).all())
+    return jsonify([c.to_dict() for c in comments]), 200
+
+
+@app.route('/api/boards/<int:board_id>/tasks/<int:task_id>/comments', methods=['POST'])
+@jwt_required()
+def create_comment(board_id, task_id):
+    task, error = get_task_for_member(board_id, task_id)
+    if error:
+        return error
+
+    data = request.get_json(silent=True) or {}
+    content = (data.get('content') or '').strip()
+
+    if not content:
+        return jsonify({"message": "El comentario no puede estar vacío"}), 400
+    if len(content) > MAX_COMMENT_LENGTH:
+        return jsonify({"message": f"Máximo {MAX_COMMENT_LENGTH} caracteres"}), 400
+
+    comment = Comment(task_id=task.id, author_id=int(get_jwt_identity()), content=content)
+    db.session.add(comment)
+    db.session.commit()
+
+    return jsonify(comment.to_dict()), 201
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
