@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
+from ai_service import generate_board_diagnostics
 
 from models import db, User, Board, Task, Comment
 from security import init_security
@@ -30,7 +31,17 @@ with app.app_context():
 
 @app.route('/api/auth/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    data = request.get_json(silent=True, force=True)
+    print("Parsed JSON:", data)
+
+    if not data or not isinstance(data, dict):
+        if request.form:
+            data = request.form.to_dict()
+        else:
+            return jsonify({
+                "message": "El cuerpo de la petición llegó vacío o mal formateado", 
+                "debug_raw": str(request.data)
+            }), 400
 
     if not data or not data.get('name') or not data.get('email') or not data.get('password'):
         return jsonify({"message": "Faltan campos obligatorios"}), 400
@@ -276,8 +287,6 @@ MAX_COMMENT_LENGTH = 1000
 
 
 def get_task_for_member(board_id, task_id):
-    """Valida tablero, permisos (dueño o miembro) y tarea.
-    Devuelve (task, None) si todo va bien, o (None, respuesta_de_error)."""
     user_id = int(get_jwt_identity())
 
     board = db.session.get(Board, board_id)
@@ -326,6 +335,25 @@ def create_comment(board_id, task_id):
     db.session.commit()
 
     return jsonify(comment.to_dict()), 201
+
+@app.route('/api/boards/<int:board_id>/ai-diagnostics', methods=['GET'])
+@jwt_required()
+def get_ai_diagnostics(board_id):
+    user_id = int(get_jwt_identity())
+    
+    board = Board.query.get(board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+
+    if board.owner_id != user_id and user_id not in [m.id for m in board.members]:
+        return jsonify({"message": "No tienes permisos para consultar el diagnóstico de este tablero"}), 403
+
+    result = generate_board_diagnostics(board)
+    
+    if result.get("status") == "error":
+        return jsonify(result), 500
+        
+    return jsonify(result), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
