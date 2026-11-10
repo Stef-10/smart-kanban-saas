@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import TaskComments from '../components/TaskComments';
+import BoardDiagnosticsButton from '../components/BoardDiagnosticsButton';
 
 export default function BoardDetail() {
   const { boardId } = useParams();
@@ -106,7 +107,10 @@ export default function BoardDetail() {
           <h2>Tablero de Trabajo</h2>
           <p className="text-muted">Gestiona el progreso de tus requerimientos</p>
         </div>
-        <button className="btn btn-success" onClick={() => setShowModal(true)}>+ Nueva Tarea</button>
+        <div className="d-flex gap-2 align-items-center">
+          <BoardDiagnosticsButton boardId={boardId} />
+          <button className="btn btn-success" onClick={() => setShowModal(true)}>+ Nueva Tarea</button>
+        </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
