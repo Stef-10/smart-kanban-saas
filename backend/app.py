@@ -1,6 +1,5 @@
 import os
-from datetime import timedelta
-
+from datetime import timedelta, datetime
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -181,6 +180,44 @@ def add_board_member(board_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "Error interno del servidor", "error": str(e)}), 500
+    
+@app.route('/api/boards/<int:board_id>/metrics/weekly', methods=['GET'])
+@jwt_required()
+def weekly_metrics(board_id):
+    user_id = int(get_jwt_identity())
+
+    board = db.session.get(Board, board_id)
+    if not board:
+        return jsonify({"message": "Tablero no encontrado"}), 404
+
+    if board.owner_id != user_id and user_id not in [m.id for m in board.members]:
+        return jsonify({"message": "No tienes permisos para este tablero"}), 403
+
+    weeks = request.args.get('weeks', default=8, type=int)
+    weeks = max(1, min(weeks, 52))
+
+    today = datetime.utcnow().date()
+    this_monday = today - timedelta(days=today.weekday())
+    first_monday = this_monday - timedelta(weeks=weeks - 1)
+
+    # Una entrada por semana, todas en 0, para que la gráfica no tenga huecos
+    counts = {first_monday + timedelta(weeks=i): 0 for i in range(weeks)}
+
+    tasks = Task.query.filter(
+        Task.board_id == board_id,
+        Task.completed_at.isnot(None),
+        Task.completed_at >= datetime.combine(first_monday, datetime.min.time())
+    ).all()
+
+    for t in tasks:
+        d = t.completed_at.date()
+        monday = d - timedelta(days=d.weekday())
+        if monday in counts:
+            counts[monday] += 1
+
+    return jsonify([
+        {"week": k.isoformat(), "total": v} for k, v in sorted(counts.items())
+    ]), 200
 
 @app.route('/api/boards/<int:board_id>/tasks', methods=['GET'])
 @jwt_required()
@@ -260,6 +297,10 @@ def update_task(board_id, task_id):
         status = (data.get('status') or '').strip()
         if status not in ['todo', 'in_progress', 'done']:
             return jsonify({"message": "Estado no válido"}), 400
+        if status == 'done' and task.status != 'done':
+            task.completed_at = datetime.utcnow()
+        elif status != 'done':
+            task.completed_at = None
         task.status = status
 
     if 'priority' in data:
