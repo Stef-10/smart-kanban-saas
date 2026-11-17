@@ -27,6 +27,9 @@ class Board(db.Model):
     description = db.Column(db.String(255), default='')
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    ai_report = db.Column(db.Text, nullable=True)
+    ai_generated_at = db.Column(db.DateTime, nullable=True)
 
     owner = db.relationship('User', backref='boards')
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getBoardDiagnostics } from '../services/aiService';
+import ReactMarkdown from 'react-markdown';
 
 const BoardDiagnosticsButton = ({ boardId }) => {
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,14 @@ const BoardDiagnosticsButton = ({ boardId }) => {
         disabled={loading}
         className="btn btn-outline-primary fw-bold"
       >
-        {loading ? "Analizando con IA..." : "✨ Generar Diagnóstico IA"}
+        {loading ? (
+          <>
+          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          "Analizando con IA..."
+          </>
+        ) : ( 
+          "Generar Diagnóstico IA"
+        )}
       </button>
 
       {error && (
@@ -50,8 +58,8 @@ const BoardDiagnosticsButton = ({ boardId }) => {
       {report && (
         <div className="mt-4 p-5 bg-light border border-secondary rounded-xl shadow-sm">
           <h3 className="text-lg font-bold mb-2 text-primary">Diagnóstico del Agile Coach</h3>
-          <div className="whitespace-pre-line text-sm text-dark">
-            {report}
+          <div className="markdown-body">
+            <ReactMarkdown>{report}</ReactMarkdown>
           </div>
         </div>
       )}

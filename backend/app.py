@@ -1,5 +1,5 @@
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
@@ -336,7 +336,7 @@ def create_comment(board_id, task_id):
 
     return jsonify(comment.to_dict()), 201
 
-@app.route('/api/boards/<int:board_id>/ai-diagnostics', methods=['GET'])
+@app.route('/api/boards/<int:board_id>/diagnostics', methods=['GET'])
 @jwt_required()
 def get_ai_diagnostics(board_id):
     user_id = int(get_jwt_identity())
@@ -352,8 +352,15 @@ def get_ai_diagnostics(board_id):
     
     if result.get("status") == "error":
         return jsonify(result), 500
+
+    board.ai_report = result.get("report")
+    board.ai_generated_at = datetime.utcnow()
+    db.session.commit()
         
-    return jsonify(result), 200
+    return jsonify({
+        "report": board.ai_report,
+        "generated_at": board.ai_generated_at.isoformat()
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

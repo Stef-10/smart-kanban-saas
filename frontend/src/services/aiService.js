@@ -1,7 +1,7 @@
 const API_URL = "http://localhost:5000";
 export const getBoardDiagnostics = async (boardId, token) => {
   try {
-    const response = await fetch(`${API_URL}/api/boards/${boardId}/ai-diagnostics`, {
+    const response = await fetch(`${API_URL}/api/boards/${boardId}/diagnostics`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

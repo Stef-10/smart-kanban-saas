@@ -10,3 +10,4 @@ Thumbs.db
 .env
 requirements-local.txt
 instance/
+node_modules/
