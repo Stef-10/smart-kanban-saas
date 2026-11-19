@@ -380,7 +380,7 @@ def create_comment(board_id, task_id):
 
     return jsonify(comment.to_dict()), 201
 
-@app.route('/api/boards/<int:board_id>/diagnostics', methods=['GET'])
+@app.route('/api/boards/<int:board_id>/diagnosis', methods=['GET'])
 @jwt_required()
 def get_ai_diagnostics(board_id):
     user_id = int(get_jwt_identity())
@@ -389,8 +389,8 @@ def get_ai_diagnostics(board_id):
     if not board:
         return jsonify({"message": "Tablero no encontrado"}), 404
 
-    if board.owner_id != user_id and user_id not in [m.id for m in board.members]:
-        return jsonify({"message": "No tienes permisos para consultar el diagnóstico de este tablero"}), 403
+    if board.owner_id != user_id:
+        return jsonify({"message": "Solo el dueño del tablero puede consultar el diagnóstico"}), 403
 
     if board.ai_report:
         return jsonify({

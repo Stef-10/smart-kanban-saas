@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import TaskComments from '../components/TaskComments';
-import BoardDiagnosticsButton from '../components/BoardDiagnosticsButton';
+import DiagnosisModal from '../components/DiagnosisModal';
 
+const USE_MOCK_DIAGNOSIS = false;
 export default function BoardDetail() {
   const { boardId } = useParams();
   const navigate = useNavigate();
@@ -18,6 +19,11 @@ export default function BoardDetail() {
   const [priority, setPriority] = useState('medium');
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [showDiagnosis, setShowDiagnosis] = useState(false);
+  const [diagnosis, setDiagnosis] = useState(null);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [diagnosisError, setDiagnosisError] = useState('');
 
   const columns = [
     { id: 'todo', title: 'Por hacer', bg: 'bg-light' },
@@ -38,6 +44,43 @@ export default function BoardDetail() {
     };
     fetchTasks();
   }, [boardId]);
+
+    useEffect(() => {
+    const checkOwner = async () => {
+      try {
+        const res = await api.get('/boards');
+        const board = res.data.find((b) => b.id === Number(boardId));
+        const me = JSON.parse(localStorage.getItem('user') || 'null');
+        setIsOwner(Boolean(board && me && board.owner_id === me.id));
+      } catch {
+        setIsOwner(false);
+      }
+    };
+    checkOwner();
+  }, [boardId]);
+
+  const handleOpenDiagnosis = async () => {
+    setShowDiagnosis(true);
+    setDiagnosisLoading(true);
+    setDiagnosisError('');
+    try {
+      if (USE_MOCK_DIAGNOSIS) {
+        await new Promise((r) => setTimeout(r, 800));
+        setDiagnosis({
+          report:
+            'Resumen:\n- 3 tareas llevan más de 7 días en "En proceso".\n- La prioridad alta se está acumulando.\n\nRecomendación: repartir las tareas pendientes entre los miembros del tablero.',
+          generated_at: new Date().toISOString(),
+        });
+      } else {
+        const res = await api.get(`/boards/${boardId}/diagnosis`);
+        setDiagnosis(res.data);
+      }
+    } catch (err) {
+      setDiagnosisError(err.response?.data?.message || 'No se pudo cargar el diagnóstico');
+    } finally {
+      setDiagnosisLoading(false);
+    }
+  };
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
@@ -108,23 +151,30 @@ export default function BoardDetail() {
           <h2>Tablero de Trabajo</h2>
           <p className="text-muted">Gestiona el progreso de tus requerimientos</p>
         </div>
-        
-        {/* Contenedor de botones correctamente cerrado */}
-        <div className="d-flex gap-2 align-items-center">
-          <BoardDiagnosticsButton boardId={boardId} />
-          <div className="d-flex gap-2">
-            <button
-              className="btn btn-outline-primary"
-              onClick={() => navigate(`/boards/${boardId}/dashboard`)}
-            >
-              Ver dashboard
+         <div className="d-flex gap-2">
+          {isOwner && (
+            <button className="btn btn-outline-danger" onClick={handleOpenDiagnosis}>
+              Diagnóstico IA
             </button>
-            <button className="btn btn-success" onClick={() => setShowModal(true)}>+ Nueva Tarea</button>
-          </div>
+          )}
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => navigate(`/boards/${boardId}/dashboard`)}
+          >
+            Ver dashboard
+          </button>
+          <button className="btn btn-success" onClick={() => setShowModal(true)}>+ Nueva Tarea</button>
         </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
+      <DiagnosisModal
+        show={showDiagnosis}
+        onClose={() => setShowDiagnosis(false)}
+        report={diagnosis}
+        loading={diagnosisLoading}
+        error={diagnosisError}
+      />
 
       <div className="row g-3">
         {columns.map((col) => {
