@@ -1,5 +1,10 @@
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 export default function DiagnosisModal({ show, onClose, report, loading, error }) {
   if (!show) return null;
+
+  const markdownText = typeof report === 'string' ? report : report?.report || '';
 
   return (
     <>
@@ -15,7 +20,33 @@ export default function DiagnosisModal({ show, onClose, report, loading, error }
               {loading && <p className="text-muted">Generando diagnóstico...</p>}
               {error && <div className="alert alert-danger">{error}</div>}
               {!loading && !error && report && (
-                <div style={{ whiteSpace: 'pre-wrap' }}>{report.report}</div>
+                <div className="diagnosis-markdown">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      pre({ children }) {
+                        return <>{children}</>;
+                      },
+                      code({ className, children, ...props }) {
+                        const isBlock = Boolean(className) || String(children).includes('\n');
+                        if (isBlock) {
+                          return (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {String(children).replace(/\n$/, '')}
+                            </ReactMarkdown>
+                          );
+                        }
+                        return (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                    }}
+                  >
+                    {markdownText}
+                  </ReactMarkdown>
+                </div>
               )}
             </div>
 

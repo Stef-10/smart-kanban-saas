@@ -420,7 +420,7 @@ def generate_board_diagnostics(board):
             messages=[
                 {
                     "role": "system",
-                    "content": "Eres un Agile Coach experto en gestión de proyectos y tableros Kanban. Analiza el estado del tablero y da un reporte profesional en formato Markdown."
+                    "content": "Eres un Agile Coach experto en gestión de proyectos y tableros Kanban. Analiza el estado del tablero y da un reporte profesional en formato Markdown. No encierres ninguna sección ni plantilla entre triples comillas invertidas (```)."
                 },
                 {
                     "role": "user",
