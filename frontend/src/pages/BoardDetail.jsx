@@ -95,9 +95,10 @@ export default function BoardDetail() {
     }
     setDraggedTaskId(null);
   };
+
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
+
   return (
-    
     <div className="container-fluid mt-4 px-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -107,9 +108,19 @@ export default function BoardDetail() {
           <h2>Tablero de Trabajo</h2>
           <p className="text-muted">Gestiona el progreso de tus requerimientos</p>
         </div>
+        
+        {/* Contenedor de botones correctamente cerrado */}
         <div className="d-flex gap-2 align-items-center">
           <BoardDiagnosticsButton boardId={boardId} />
-          <button className="btn btn-success" onClick={() => setShowModal(true)}>+ Nueva Tarea</button>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => navigate(`/boards/${boardId}/dashboard`)}
+            >
+              Ver dashboard
+            </button>
+            <button className="btn btn-success" onClick={() => setShowModal(true)}>+ Nueva Tarea</button>
+          </div>
         </div>
       </div>
 
@@ -214,7 +225,8 @@ export default function BoardDetail() {
           </div>
         </div>
       )}
-            {selectedTask && (
+
+      {selectedTask && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', zIndex: 1050, overflowY: 'auto' }}>
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
@@ -242,6 +254,5 @@ export default function BoardDetail() {
         </div>
       )}
     </div>
-    
   );
 }
