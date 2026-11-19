@@ -56,6 +56,7 @@ class Task(db.Model):
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     board_id = db.Column(db.Integer, db.ForeignKey('boards.id', ondelete="CASCADE"), nullable=False)
+    completed_at = db.Column(db.DateTime, nullable=True)
     
     board = db.relationship('Board', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
 
@@ -69,6 +70,7 @@ class Task(db.Model):
             "due_date": self.due_date.isoformat() if self.due_date else None,
             "assigned_to_id": self.assigned_to_id,
             "board_id": self.board_id,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "created_at": self.created_at.isoformat()
         }
 
