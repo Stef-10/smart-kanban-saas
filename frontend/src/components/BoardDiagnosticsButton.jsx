@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getBoardDiagnostics } from '../services/aiService';
 import ReactMarkdown from 'react-markdown';
 
@@ -7,11 +7,10 @@ const BoardDiagnosticsButton = ({ boardId }) => {
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
 
-  const handleFetchDiagnostics = async () => {
+  const fetchDiagnostics = async () => {
     setLoading(true);
     setError(null);
     
-    // Verificamos qué token hay en localStorage
     const token = localStorage.getItem("token");
     console.log("Token obtenido de localStorage:", token ? "Sí existe (longitud: " + token.length + ")" : "NO EXISTE");
 
@@ -19,10 +18,10 @@ const BoardDiagnosticsButton = ({ boardId }) => {
       const result = await getBoardDiagnostics(boardId, token);
       console.log("Resultado de IA:", result);
       
-      if (result.status === "success") {
+      if (result && result.report) {
         setReport(result.report);
       } else {
-        setError(result.message || "No se pudo generar el reporte");
+        setError("No se pudo obtener el reporte del servidor.");
       }
     } catch (err) {
       console.error("Error atrapado en el botón:", err);
@@ -31,21 +30,22 @@ const BoardDiagnosticsButton = ({ boardId }) => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="my-4">
       <button 
-        onClick={handleFetchDiagnostics}
+        onClick={fetchDiagnostics} 
         disabled={loading}
         className="btn btn-outline-primary fw-bold"
       >
         {loading ? (
           <>
           <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          "Analizando con IA..."
+          Analizando con IA...
           </>
         ) : ( 
-          "Generar Diagnóstico IA"
+          report ? "Actualizar Diagnóstico IA" : "Generar Diagnóstico IA"
         )}
       </button>
 

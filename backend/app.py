@@ -8,6 +8,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 from ai_service import generate_board_diagnostics
+from groq import Groq
 
 from models import db, User, Board, Task, Comment
 from security import init_security
@@ -20,6 +21,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///kanban.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY') or 'admin-user-ks'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
+
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 CORS(app)
 db.init_app(app)
@@ -348,6 +351,12 @@ def get_ai_diagnostics(board_id):
     if board.owner_id != user_id and user_id not in [m.id for m in board.members]:
         return jsonify({"message": "No tienes permisos para consultar el diagnóstico de este tablero"}), 403
 
+    if board.ai_report:
+        return jsonify({
+            "report": board.ai_report,
+            "generated_at": board.ai_generated_at.isoformat() if board.ai_generated_at else None
+        }), 200
+
     result = generate_board_diagnostics(board)
     
     if result.get("status") == "error":
@@ -361,6 +370,39 @@ def get_ai_diagnostics(board_id):
         "report": board.ai_report,
         "generated_at": board.ai_generated_at.isoformat()
     }), 200
+
+def generate_board_diagnostics(board):
+    try:
+        board_data_summary = f"Tablero: {board.name}. Descripción: {board.description}"
+        
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Eres un Agile Coach experto en gestión de proyectos y tableros Kanban. Analiza el estado del tablero y da un reporte profesional en formato Markdown."
+                },
+                {
+                    "role": "user",
+                    "content": f"Por favor, analiza este tablero: {board_data_summary}"
+                }
+            ],
+            model="openai/gpt-oss-120b",
+            temperature=0.5,
+        )
+        
+        report_text = chat_completion.choices[0].message.content
+        
+        return {
+            "status": "success",
+            "report": report_text
+        }
+        
+    except Exception as e:
+        print(f"Error en Groq: {str(e)}")
+        return {
+            "status": "error",
+            "message": f"Error al generar el diagnóstico con la IA: {str(e)}"
+        }
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
