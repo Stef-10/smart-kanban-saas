@@ -1,1 +1,110 @@
+:root {
+  --pastel-bg: #f6f7fb;
+  --pastel-column: #eceef8;
+  --pastel-card: #ffffff;
+  --pastel-border: #dce0f2;
+  --pastel-text: #27293d;
+  --pastel-muted: #6b6f8c;
+  --pastel-accent: #6d5dfc;
+  --pastel-accent-hover: #5a4ae6;
+  --pastel-accent-soft: #ebe8ff;
+  --pastel-high-bg: #efe4fd;
+  --pastel-high-text: #67469b;
+  --pastel-med-bg: #ffffd1;
+  --pastel-med-text: #8c7a2b;
+  --pastel-low-bg: #dff5ec;
+  --pastel-low-text: #22664c;
+}
 
+.bg-pastel {
+  background-color: var(--pastel-bg) !important;
+}
+
+.bg-pastel-column {
+  background-color: var(--pastel-column) !important;
+}
+
+.bg-pastel-card {
+  background-color: var(--pastel-card) !important;
+}
+
+.border-pastel {
+  border-color: var(--pastel-border) !important;
+}
+
+.text-pastel {
+  color: var(--pastel-text) !important;
+}
+
+.text-pastel-muted {
+  color: var(--pastel-muted) !important;
+}
+
+.btn-pastel-primary {
+  background-color: var(--pastel-accent);
+  border-color: var(--pastel-accent);
+  color: #ffffff;
+}
+
+.btn-pastel-primary:hover,
+.btn-pastel-primary:focus {
+  background-color: var(--pastel-accent-hover);
+  border-color: var(--pastel-accent-hover);
+  color: #ffffff;
+}
+
+.btn-pastel-secondary {
+  background-color: #ffffff;
+  border-color: var(--pastel-border);
+  color: var(--pastel-text);
+}
+
+.btn-pastel-secondary:hover,
+.btn-pastel-secondary:focus {
+  background-color: var(--pastel-accent-soft);
+  border-color: var(--pastel-border);
+  color: var(--pastel-text);
+}
+
+.badge-pastel-accent {
+  background-color: var(--pastel-accent-soft);
+  color: var(--pastel-accent-hover);
+}
+
+.badge-pastel-high {
+  background-color: var(--pastel-high-bg);
+  color: var(--pastel-high-text);
+}
+
+.badge-pastel-medium {
+  background-color: var(--pastel-med-bg);
+  color: var(--pastel-med-text);
+}
+
+.badge-pastel-low {
+  background-color: var(--pastel-low-bg);
+  color: var(--pastel-low-text);
+}
+
+.pastel-task-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.pastel-task-card:hover {
+  border-color: #c5cbe8 !important;
+  box-shadow: 0 4px 12px rgba(109, 93, 252, 0.08) !important;
+  transform: translateY(-1px);
+}
+
+.btn-pastel-danger {
+  background-color: var(--pastel-high-bg);
+  border-color: #f5c6d4;
+  color: var(--pastel-high-text);
+}
+
+.btn-pastel-danger:hover,
+.btn-pastel-danger:focus {
+  background-color: #fbd0de;
+  border-color: #eeaec2;
+  color: var(--pastel-high-text);
+}

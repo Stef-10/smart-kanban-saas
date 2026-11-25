@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 export const InviteMember = ({ boardId }) => {
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
@@ -26,7 +27,7 @@ export const InviteMember = ({ boardId }) => {
             if (response.ok) {
                 setStatus('success');
                 setMessage(data.message);
-                setEmail(''); 
+                setEmail('');
             } else {
                 setStatus('error');
                 setMessage(data.message || 'Ocurrió un error inesperado');
@@ -38,25 +39,35 @@ export const InviteMember = ({ boardId }) => {
     };
 
     return (
-        <div className="card p-3 my-3 shadow-sm" style={{ maxWidth: '400px' }}>
-            <h5 className="card-title text-secondary">👥 Invitar Colaborador</h5>
-            <form onSubmit={handleInvite} className="mt-2">
-                <div className="input-group mb-2">
+        <div className="bg-pastel-column border border-pastel rounded-3 p-3">
+            <h6 className="fw-semibold text-pastel small mb-2">Invitar Colaborador</h6>
+            <form onSubmit={handleInvite}>
+                <div className="input-group input-group-sm mb-2">
                     <input
                         type="email"
-                        className="form-control"
+                        className="form-control bg-pastel-card border-pastel rounded-start-3"
                         placeholder="ejemplo@correo.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
-                    <button className="btn btn-primary" type="submit">
+                    <button
+                        className="btn btn-pastel-primary rounded-end-3 px-3"
+                        type="submit"
+                    >
                         Invitar
                     </button>
                 </div>
-                
+
                 {message && (
-                    <div className={`alert py-1 px-2 text-center small ${status === 'success' ? 'alert-success' : 'alert-danger'}`} role="alert">
+                    <div
+                        className={`py-1 px-2 rounded-3 text-center small border ${
+                            status === 'success'
+                                ? 'badge-pastel-low border-pastel'
+                                : 'badge-pastel-high border-pastel'
+                        }`}
+                        role="alert"
+                    >
                         {message}
                     </div>
                 )}

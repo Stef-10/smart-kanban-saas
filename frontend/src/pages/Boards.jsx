@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { InviteMember } from '../components/InviteMember';
 
-
 export default function Boards() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -84,116 +83,148 @@ export default function Boards() {
   };
 
   return (
-    <div className="container mt-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Mis tableros</h1>
-        <div>
-          <span className="me-3">Hola, {user?.name ?? 'usuario'}</span>
-          <button className="btn btn-outline-secondary" onClick={handleLogout}>
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <form onSubmit={handleCreate} className="card card-body mb-4">
-        <h5 className="mb-3">Nuevo tablero</h5>
-        <div className="row g-2">
-          <div className="col-md-4">
-            <input
-              className="form-control"
-              placeholder="Nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="col-md-6">
-            <input
-              className="form-control"
-              placeholder="Descripción (opcional)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-          <div className="col-md-2">
-            <button type="submit" className="btn btn-primary w-100">Crear</button>
+    <div className="bg-pastel min-vh-100 py-5">
+      <div className="container">
+        <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <h1 className="fw-semibold text-pastel mb-0">Mis tableros</h1>
+          <div className="d-flex align-items-center gap-3">
+            <span className="text-pastel-muted small">Hola, {user?.name ?? 'usuario'}</span>
+            <button
+              type="button"
+              className="btn btn-sm btn-pastel-secondary border rounded-3 px-3"
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
           </div>
         </div>
-      </form>
 
-      {loading ? (
-        <p className="text-muted">Cargando...</p>
-      ) : boards.length === 0 ? (
-        <p className="text-muted">Todavía no tienes tableros. Crea el primero arriba.</p>
-      ) : (
-        <div className="row g-3">
-          {boards.map((board) => (
-            <div className="col-md-4" key={board.id}>
-              <div className="card h-100">
-                <div className="card-body">
-                  {editingId === board.id ? (
-                    <>
-                      <input
-                        className="form-control mb-2"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                      />
-                      <input
-                        className="form-control mb-3"
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                      />
-                      <button
-                        className="btn btn-success btn-sm me-2"
-                        onClick={() => handleSave(board.id)}
-                      >
-                        Guardar
-                      </button>
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => setEditingId(null)}
-                      >
-                        Cancelar
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <h5 className="card-title">{board.name}</h5>
-                      <p className="card-text text-muted">
-                        {board.description || 'Sin descripción'}
-                      </p>
-                      <button
-                        className="btn btn-outline-primary btn-sm me-2"
-                        onClick={() => startEdit(board)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => handleDelete(board.id)}
-                      >
-                        Eliminar
-                      </button>
-                      <button
-                        className="btn btn-primary btn-sm me-2"
-                        onClick={() => navigate(`/boards/${board.id}`)}
-                      >
-                        Ver Tablero
-                      </button>
-                      <div className="mt-3 pt-2 border-top">
-                        <InviteMember boardId={board.id} />
-                      </div>
+        {error && (
+          <div className="alert alert-danger border-0 rounded-3">
+            {error}
+          </div>
+        )}
 
-                    </>
-                  )}
-                </div>
+        <form
+          onSubmit={handleCreate}
+          className="card bg-pastel-card border border-pastel rounded-4 shadow-sm mb-4"
+        >
+          <div className="card-body p-3 p-md-4">
+            <h5 className="fw-semibold text-pastel mb-3">Nuevo tablero</h5>
+            <div className="row g-2 align-items-center">
+              <div className="col-12 col-md-4">
+                <input
+                  className="form-control border-pastel rounded-3"
+                  placeholder="Nombre"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="col-12 col-md-6">
+                <input
+                  className="form-control border-pastel rounded-3"
+                  placeholder="Descripción (opcional)"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              <div className="col-12 col-md-2">
+                <button
+                  type="submit"
+                  className="btn btn-pastel-primary rounded-3 w-100"
+                >
+                  Crear
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        </form>
+
+        {loading ? (
+          <p className="text-pastel-muted">Cargando...</p>
+        ) : boards.length === 0 ? (
+          <p className="text-pastel-muted">
+            Todavía no tienes tableros. Crea el primero arriba.
+          </p>
+        ) : (
+          <div className="row g-3">
+            {boards.map((board) => (
+              <div className="col-12 col-md-6 col-lg-4" key={board.id}>
+                <div className="card bg-pastel-card border border-pastel rounded-4 shadow-sm h-100 pastel-task-card">
+                  <div className="card-body p-4 d-flex flex-column">
+                    {editingId === board.id ? (
+                      <>
+                        <input
+                          className="form-control border-pastel rounded-3 mb-2"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                        />
+                        <input
+                          className="form-control border-pastel rounded-3 mb-3"
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                        />
+                        <div className="d-flex gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-pastel-primary btn-sm rounded-3 px-3"
+                            onClick={() => handleSave(board.id)}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-pastel-secondary border btn-sm rounded-3 px-3"
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h5 className="card-title fw-semibold text-pastel mb-1">
+                          {board.name}
+                        </h5>
+                        <p className="card-text text-pastel-muted small mb-3">
+                          {board.description || 'Sin descripción'}
+                        </p>
+                        <div className="d-flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-pastel-secondary border btn-sm rounded-3 px-3"
+                            onClick={() => startEdit(board)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-pastel-danger border btn-sm rounded-3 px-3"
+                            onClick={() => handleDelete(board.id)}
+                          >
+                            Eliminar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-pastel-primary btn-sm rounded-3 px-3"
+                            onClick={() => navigate(`/boards/${board.id}`)}
+                          >
+                            Ver Tablero
+                          </button>
+                        </div>
+                        <div className="mt-3 pt-3 border-top border-pastel">
+                          <InviteMember boardId={board.id} />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

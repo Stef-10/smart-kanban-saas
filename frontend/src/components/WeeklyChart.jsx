@@ -38,8 +38,14 @@ export default function WeeklyChart({ boardId }) {
     };
   }, [boardId]);
 
-  if (loading) return <p className="text-muted">Cargando métricas...</p>;
-  if (error) return <div className="alert alert-danger">{error}</div>;
+  if (loading) return <p className="text-pastel-muted small mb-0">Cargando métricas...</p>;
+  if (error) {
+    return (
+      <div className="py-2 px-3 rounded-3 small border badge-pastel-high border-pastel">
+        {error}
+      </div>
+    );
+  }
 
   const data = {
     labels: rows.map((r) =>
@@ -52,8 +58,12 @@ export default function WeeklyChart({ boardId }) {
       {
         label: 'Tareas completadas',
         data: rows.map((r) => r.total),
-        backgroundColor: 'rgba(13, 110, 253, 0.7)',
-        borderRadius: 4,
+        backgroundColor: 'rgba(109, 93, 252, 0.32)',
+        hoverBackgroundColor: 'rgba(109, 93, 252, 0.48)',
+        borderColor: 'rgba(109, 93, 252, 0.85)',
+        borderWidth: 1.5,
+        borderRadius: 8,
+        borderSkipped: false,
       },
     ],
   };
@@ -61,8 +71,43 @@ export default function WeeklyChart({ boardId }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: '#27293d',
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+        },
+      },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#27293d',
+        bodyColor: '#6b6f8c',
+        borderColor: '#dce0f2',
+        borderWidth: 1,
+        padding: 10,
+      },
+    },
     scales: {
-      y: { beginAtZero: true, ticks: { precision: 0 } },
+      x: {
+        grid: {
+          color: 'rgba(220, 224, 242, 0.5)',
+        },
+        ticks: {
+          color: '#6b6f8c',
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(220, 224, 242, 0.5)',
+        },
+        ticks: {
+          precision: 0,
+          color: '#6b6f8c',
+        },
+      },
     },
   };
 

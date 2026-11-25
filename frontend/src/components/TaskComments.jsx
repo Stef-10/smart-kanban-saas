@@ -51,23 +51,42 @@ export default function TaskComments({ boardId, taskId }) {
 
   return (
     <section className="mt-4">
-      <h6 className="text-secondary">💬 Comentarios ({comments.length})</h6>
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <h6 className="fw-semibold text-pastel mb-0">Comentarios</h6>
+        <span className="badge rounded-pill bg-pastel-column text-pastel-muted border border-pastel">
+          {comments.length}
+        </span>
+      </div>
 
-      {error && <div className="alert alert-danger py-1 small">{error}</div>}
+      {error && (
+        <div className="py-1 px-3 rounded-3 small border badge-pastel-high border-pastel mb-2">
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <p className="text-muted small">Cargando comentarios...</p>
+        <p className="text-pastel-muted small">Cargando comentarios...</p>
       ) : comments.length === 0 ? (
-        <p className="text-muted small">Aún no hay comentarios. Sé el primero en escribir.</p>
+        <p className="text-pastel-muted small">
+          Aún no hay comentarios. Sé el primero en escribir.
+        </p>
       ) : (
-        <ul className="list-unstyled mb-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+        <ul
+          className="list-unstyled mb-3 d-flex flex-column gap-2"
+          style={{ maxHeight: '300px', overflowY: 'auto' }}
+        >
           {comments.map((c) => (
-            <li key={c.id} className="border rounded p-2 mb-2 bg-light">
-              <div className="d-flex justify-content-between small">
-                <strong>{c.author.name}</strong>
-                <span className="text-muted">{formatDate(c.created_at)}</span>
+            <li
+              key={c.id}
+              className="bg-pastel-column border border-pastel rounded-3 p-3"
+            >
+              <div className="d-flex justify-content-between align-items-center small mb-1">
+                <strong className="text-pastel">{c.author.name}</strong>
+                <span className="text-pastel-muted">{formatDate(c.created_at)}</span>
               </div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{c.content}</div>
+              <div className="text-pastel small" style={{ whiteSpace: 'pre-wrap' }}>
+                {c.content}
+              </div>
             </li>
           ))}
         </ul>
@@ -75,7 +94,7 @@ export default function TaskComments({ boardId, taskId }) {
 
       <form onSubmit={handleSubmit}>
         <textarea
-          className="form-control mb-2"
+          className="form-control border-pastel rounded-3 mb-2"
           rows={2}
           maxLength={MAX_LENGTH}
           placeholder="Escribe un comentario..."
@@ -83,12 +102,12 @@ export default function TaskComments({ boardId, taskId }) {
           onChange={(e) => setContent(e.target.value)}
         />
         <div className="d-flex justify-content-between align-items-center">
-          <small className="text-muted">
+          <small className="text-pastel-muted">
             {content.length}/{MAX_LENGTH}
           </small>
           <button
             type="submit"
-            className="btn btn-primary btn-sm"
+            className="btn btn-pastel-primary btn-sm rounded-3 px-3"
             disabled={sending || !content.trim()}
           >
             {sending ? 'Enviando...' : 'Comentar'}
