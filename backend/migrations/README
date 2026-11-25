@@ -1,1 +1,64 @@
-Single-database configuration for Flask.
+# Kanban SaaS con Diagnóstico de IA
+
+Aplicación web full-stack de gestión de tareas tipo Kanban diseñada para organizar flujos de trabajo, colaborar en equipo, visualizar métricas semanales y detectar cuellos de botella mediante inteligencia artificial.
+
+## Características principales
+
+* **Gestión de tableros:** Creación, edición, eliminación y navegación entre tableros personales o compartidos.
+* **Tablero Kanban interactivo:** Columnas de estado (*Por hacer*, *En proceso*, *Finalizado*) con *drag-and-drop*, modales para crear y inspeccionar tareas, y etiquetas de prioridad.
+* **Colaboración y comentarios:** Invitación de miembros al tablero por correo y hilo de comentarios por tarea con contador de caracteres.
+* **Dashboard de métricas:** Gráfica de tareas completadas por semana integrada con la paleta visual del sistema.
+* **Diagnóstico con IA:** Análisis de cuellos de botella y recomendaciones del tablero a través de un modal con renderizado Markdown (`react-markdown` + `remark-gfm`).
+* **Sistema de diseño pastel:** Interfaz unificada construida sobre React, Bootstrap y variables CSS (`:root`) con tonos suaves y componentes consistentes en todas las vistas.
+
+## Stack tecnológico
+
+* **Frontend:** React, Vite, React Router, Bootstrap, CSS personalizado, Chart.js (`react-chartjs-2`), `react-markdown`, `remark-gfm`.
+* **Backend:** Python, Flask, SQLAlchemy, API RESTful con autenticación basada en token.
+* **Inteligencia Artificial:** Groq API (`openai/gpt-oss-120b`).
+* **Control de versiones:** Git y GitHub.
+
+## Estructura del proyecto (Frontend)
+
+```text
+src/
+├── api/                  # Cliente HTTP configurado para consumir la API de Flask
+├── components/
+│   ├── DiagnosisModal.jsx# Modal de diagnóstico IA con soporte Markdown/GFM
+│   ├── InviteMember.jsx  # Formulario para invitar colaboradores a un tablero
+│   ├── TaskComments.jsx  # Lista y formulario de comentarios por tarea
+│   └── WeeklyChart.jsx   # Gráfica de barras de tareas completadas por semana
+├── pages/
+│   ├── Login.jsx         # Inicio de sesión
+│   ├── Register.jsx      # Registro de usuarios
+│   ├── Boards.jsx        # Listado, creación, edición y eliminación de tableros
+│   ├── BoardDetail.jsx   # Tablero Kanban con drag-and-drop y modales de tarea/IA
+│   └── Dashboard.jsx     # Vista de métricas semanales del tablero
+└── index.css             # Variables (:root) y clases utilitarias del tema pastel
+```
+
+## Configuración y ejecución local
+
+### 1. Backend (Flask)
+
+1. Entra a la carpeta del backend y crea/activa tu entorno virtual:
+   ```bash
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # macOS / Linux:
+   source venv/bin/activate
+   ```
+2. Instala las dependencias y configura tus variables de entorno (incluyendo tu clave de base de datos, JWT/auth y `GROQ_API_KEY`).
+3. Ejecuta el servidor en `http://127.0.0.1:5000`.
+
+### 2. Frontend (React + Vite)
+
+1. Entra a la carpeta del frontend e instala las dependencias:
+   ```bash
+   npm install
+   ```
+2. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
